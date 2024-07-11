@@ -10,19 +10,15 @@ class Program
 {
     static async Task Main()
     {
-        // Замените на свои настройки URL и заголовков
-        string url = "https://msapi.top-academy.ru/api/v2/schedule/operations";
+        string url = "https://msapi.top-academy.ru/api/v2";
         Dictionary<string, string> headers = new Dictionary<string, string>
         {
             { "authorization", "" },
-            { "referer", "https://journal.top-academy.ru/" },
-            { "user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.110 Safari/537.36" }
+            { "referer", "https://journal.top-academy.ru/" }
         };
 
-        // Проверяем, есть ли refresh_token в базе данных
         string refresh_token = LoadRefreshTokenFromDB();
 
-        // Если refresh_token не найден или истек, запрашиваем его
         if (string.IsNullOrEmpty(refresh_token) || !CheckTokenValidity(url, headers))
         {
             Console.Write("Введите ваш логин: ");
@@ -41,25 +37,27 @@ class Program
             }
         }
 
-        // Устанавливаем заголовок authorization
         headers["authorization"] = $"Bearer {refresh_token}";
 
-        // Создаем экземпляр ScheduleFetcher и передаем URL и заголовки
-        ScheduleFetcher scheduleFetcher = new ScheduleFetcher(url, headers);
+        var httpClient = new HttpClient();
+        ScheduleFetcher scheduleFetcher = new ScheduleFetcher(httpClient, url, headers);
+        ScheduleManager scheduleManager = new ScheduleManager(scheduleFetcher, headers);
 
-        // Создаем экземпляр ScheduleManager, используя ScheduleFetcher
-        ScheduleManager scheduleManager = new ScheduleManager(scheduleFetcher);
+        Console.Write("Введите дату (гггг-мм-дд): ");
+        string inputDate = Console.ReadLine().Trim();
 
-        // Получаем расписание на текущую неделю !!!!!!!!!!!!!!!!!!!!!!
-        Dictionary<string, List<Dictionary<string, string>>> currentWeekSchedule = scheduleManager.GetCurrentWeekSchedule();
+        List<Dictionary<string, string>> scheduleForDay = scheduleManager.GetScheduleForDay(inputDate);
 
-        // Выводим расписание на текущую неделю
-        SchedulePrinter.PrintSchedule(currentWeekSchedule);
-
-        // Сохраняем расписание на текущую неделю в JSON файл
-        SchedulePrinter.SaveToJson(currentWeekSchedule, "schedule_current_week.json");
-
-        Console.WriteLine("Расписание успешно выведено и сохранено.");
+        if (scheduleForDay != null)
+        {
+            SchedulePrinter.PrintSchedule(scheduleForDay);
+            SchedulePrinter.SaveToJson(scheduleForDay, $"schedule_{inputDate}.json");
+            Console.WriteLine($"Расписание на {inputDate} успешно выведено и сохранено.");
+        }
+        else
+        {
+            Console.WriteLine($"Не удалось получить расписание на {inputDate}.");
+        }
     }
 
     static string LoadRefreshTokenFromDB()
