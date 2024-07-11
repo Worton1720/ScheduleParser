@@ -4,16 +4,18 @@ using System.Text;
 
 public class ScheduleFetcher
 {
+    private readonly HttpClient _httpClient;
     private readonly string _url;
     private readonly Dictionary<string, string> _headers;
 
-    public ScheduleFetcher(string url, Dictionary<string, string> headers)
+    public ScheduleFetcher(HttpClient httpClient, string url, Dictionary<string, string> headers)
     {
+        _httpClient = httpClient;
         _url = url;
         _headers = headers;
     }
 
-    public Dictionary<string, List<Dictionary<string, string>>> FetchSchedule(string endpoint, Dictionary<string, string> parameters = null)
+    public List<Dictionary<string, string>> FetchSchedule(string endpoint, Dictionary<string, string> parameters)
     {
         try
         {
@@ -38,7 +40,7 @@ public class ScheduleFetcher
             using (var streamReader = new StreamReader(response.GetResponseStream()))
             {
                 var responseText = streamReader.ReadToEnd();
-                return JsonConvert.DeserializeObject<Dictionary<string, List<Dictionary<string, string>>>>(responseText);
+                return JsonConvert.DeserializeObject<List<Dictionary<string, string>>>(responseText);
             }
         }
         catch (WebException ex)

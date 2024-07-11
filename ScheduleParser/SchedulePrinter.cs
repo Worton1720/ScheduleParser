@@ -2,22 +2,19 @@
 
 public static class SchedulePrinter
 {
-    public static void PrintSchedule(Dictionary<string, List<Dictionary<string, string>>> scheduleData)
+    public static void PrintSchedule(List<Dictionary<string, string>> scheduleData)
     {
         if (scheduleData != null)
         {
             foreach (var dateEntry in scheduleData)
             {
-                Console.WriteLine($"Дата: {dateEntry.Key}");
-                foreach (var entry in dateEntry.Value)
-                {
-                    Console.WriteLine($"Урок: {entry["lesson"]}");
-                    Console.WriteLine($"Длительность пары: {entry["started_at"]}|{entry["finished_at"]}");
-                    Console.WriteLine($"Преподаватель: {entry["teacher_name"]}");
-                    Console.WriteLine($"Предмет: {entry["subject_name"]}");
-                    Console.WriteLine($"Аудитория: {entry["room_name"]}");
-                    Console.WriteLine();
-                }
+                Console.WriteLine($"Дата: {dateEntry["date"]}");
+                Console.WriteLine($"Урок: {dateEntry["lesson"]}");
+                Console.WriteLine($"Длительность пары: {dateEntry["started_at"]}|{dateEntry["finished_at"]}");
+                Console.WriteLine($"Преподаватель: {dateEntry["teacher_name"]}");
+                Console.WriteLine($"Предмет: {dateEntry["subject_name"]}");
+                Console.WriteLine($"Аудитория: {dateEntry["room_name"]}");
+                Console.WriteLine();
             }
         }
         else
@@ -26,7 +23,7 @@ public static class SchedulePrinter
         }
     }
 
-    public static void SaveToJson(Dictionary<string, List<Dictionary<string, string>>> scheduleData, string filename)
+    public static void SaveToJson(List<Dictionary<string, string>> scheduleData, string filename)
     {
         var json = JsonConvert.SerializeObject(scheduleData, Formatting.Indented);
         File.WriteAllText(filename, json);
